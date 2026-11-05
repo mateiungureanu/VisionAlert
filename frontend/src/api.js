@@ -1,4 +1,4 @@
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 async function request(path, { method = 'GET', body, token } = {}) {
   const res = await fetch(`${API}${path}`, {
@@ -17,6 +17,7 @@ async function request(path, { method = 'GET', body, token } = {}) {
 export const registerUser = (body) => request('/auth/register/', { method: 'POST', body });
 export const loginUser = (body) => request('/auth/login/', { method: 'POST', body });
 export const getMe = (token) => request('/auth/me/', { token });
+export const deleteAccount = (token) => request('/auth/me/delete/', { method: 'DELETE', token });
 
 export function formatErrors(err) {
   const d = err?.data;

@@ -13,3 +13,9 @@ table { width: 100%; text-align: left; }
 th { color: #666; font-weight: 500; padding: .4rem 0; }
 .back-link { display: inline-block; margin-bottom: 1rem; color: #4f46e5; text-decoration: none; font-weight: 500; }
 .back-link:hover { text-decoration: underline; }
+.danger-zone { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #ddd; }
+.danger-zone h3 { color: #b91c1c; }
+.danger-zone input { width: 100%; box-sizing: border-box; margin: .5rem 0; }
+.delete-button { background: #b91c1c; }
+.delete-button:disabled { background: #aaa; cursor: not-allowed; }
+.delete-button-confirm { background: #aaa; }

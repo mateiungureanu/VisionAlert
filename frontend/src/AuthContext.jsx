@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { loginUser, getMe } from './api';
+import { deleteAccount as deleteAccountRequest, loginUser, getMe } from './api';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -23,12 +23,17 @@ export function AuthProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  async function login(email, password) {
-    const data = await loginUser({ email, password });
+  async function login(identifier, password) {
+    const data = await loginUser({ identifier, password });
     const me = await getMe(data.access);
     localStorage.setItem('access', data.access);
     setUser(me);
     setToken(data.access);
+  }
+
+  async function deleteAccount() {
+    await deleteAccountRequest(token);
+    logout();
   }
 
   function logout() {
@@ -38,7 +43,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ token, user, loading, login, logout }}>
+    <AuthContext.Provider value={{ token, user, loading, login, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
