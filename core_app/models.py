@@ -6,6 +6,7 @@ from django.core.validators import RegexValidator
 class User(AbstractUser):
     # AbstractUser are deja: id, username, first_name, last_name, email, password
     email = models.EmailField(unique=True)
+    fl_deleted = models.BooleanField(default=False)
     phone = models.CharField(
         max_length=20,
         blank=True,

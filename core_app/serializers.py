@@ -1,4 +1,7 @@
 import re
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from .models import User
 
@@ -43,3 +46,28 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'username', 'email', 'phone', 'date_joined']
+
+
+class LoginSerializer(serializers.Serializer):
+    identifier = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        identifier = attrs['identifier'].strip()
+        user = User.objects.filter(email__iexact=identifier).first()
+        if user is None:
+            user = User.objects.filter(username__iexact=identifier).first()
+
+        authenticated_user = authenticate(
+            request=self.context.get('request'),
+            email=user.email if user else identifier,
+            password=attrs['password'],
+        )
+        if authenticated_user is None:
+            raise AuthenticationFailed('Nu există un cont cu aceste date de autentificare.')
+
+        refresh = TokenObtainPairSerializer.get_token(authenticated_user)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }

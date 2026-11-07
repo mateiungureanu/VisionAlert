@@ -7,7 +7,7 @@ export default function Home() {
     <>
       <Navbar />
       <main className="center">
-        <h1>Welcome to our app{user ? `, ${user.first_name}` : ''}!</h1>
+        <h1>Bine ai venit, {user?.first_name}!</h1>
         <p>Aici vor apărea ofertele tale personalizate.</p>
       </main>
     </>

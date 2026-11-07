@@ -37,10 +37,10 @@ export default function Register() {
       <form onSubmit={handleSubmit}>
         <input name="first_name" placeholder="Prenume" onChange={change} required />
         <input name="last_name" placeholder="Nume" onChange={change} required />
-        <input name="username" placeholder="Username" onChange={change} required />
-        <input name="email" type="email" placeholder="Email" onChange={change} required />
-        <input name="phone" placeholder="Telefon (opțional)" onChange={change} />
-        <input name="password" type="password" placeholder="Parola" onChange={change} required />
+        <input name="username" placeholder="Nume de utilizator" onChange={change} required />
+        <input name="email" type="email" placeholder="Adresă de e-mail" onChange={change} required />
+        <input name="phone" placeholder="Număr de telefon (opțional)" onChange={change} />
+        <input name="password" type="password" placeholder="Parolă" onChange={change} required />
         <input name="confirm" type="password" placeholder="Confirmă parola" onChange={change} required />
         {error && <p className="error" style={{ whiteSpace: 'pre-line' }}>{error}</p>}
         <button type="submit">Înregistrează-mă</button>

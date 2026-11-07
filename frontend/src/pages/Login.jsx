@@ -1,22 +1,34 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    if (!identifier.trim()) {
+      setError('Introdu username-ul sau adresa de email.');
+      return;
+    }
+    if (!password) {
+      setError('Introdu parola.');
+      return;
+    }
     try {
-      await login(email, password);
-      navigate('/');
+      await login(identifier, password);
+      const destination = location.state?.from;
+      navigate(destination
+        ? `${destination.pathname}${destination.search}${destination.hash}`
+        : '/');
     } catch {
-      setError('Email sau parolă greșită.');
+      setError('Username/email sau parolă greșită.');
     }
   }
 
@@ -24,9 +36,9 @@ export default function Login() {
     <div className="card">
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
-        <input type="email" placeholder="Email" value={email}
-               onChange={(e) => setEmail(e.target.value)} required />
-        <input type="password" placeholder="Parola" value={password}
+        <input placeholder="Nume de utilizator sau e-mail" value={identifier}
+               onChange={(e) => setIdentifier(e.target.value)} required />
+        <input type="password" placeholder="Parolă" value={password}
                onChange={(e) => setPassword(e.target.value)} required />
         {error && <p className="error">{error}</p>}
         <button type="submit">Intră în cont</button>
