@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
+import BrandSubscriptions from './pages/BrandSubscriptions';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
+      <Route path="/subscriptions" element={<ProtectedRoute><BrandSubscriptions /></ProtectedRoute>} />
     </Routes>
   );
 }

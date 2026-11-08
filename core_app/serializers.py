@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-from .models import User
+from .models import User, Brand, Category, BrandSubscription
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -71,3 +71,60 @@ class LoginSerializer(serializers.Serializer):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         }
+
+
+class CategoryOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
+
+
+class BrandSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    official_website = serializers.URLField(read_only=True)
+    categories = serializers.SerializerMethodField()
+
+    def get_categories(self, brand):
+        categories = brand.categories.filter(fl_disabled=False)
+        return CategoryOptionSerializer(categories, many=True).data 
+
+
+class BrandSubscriptionSerializer(serializers.ModelSerializer):
+    brand = BrandSerializer(read_only=True)
+    categories = CategoryOptionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = BrandSubscription
+        fields = ['id', 'brand', 'categories', 'created_at']
+
+
+class BrandSubscriptionWriteSerializer(serializers.Serializer):
+    brand_id = serializers.PrimaryKeyRelatedField(
+        source='brand', 
+        queryset=Brand.objects.filter(fl_disabled=False)
+    )
+    category_ids = serializers.PrimaryKeyRelatedField(
+        source='categories', 
+        queryset=Category.objects.filter(fl_disabled=False), 
+        many=True, 
+        required=False
+    )
+
+    def validate(self, attrs):
+        brand = attrs['brand']
+        categories = attrs.get('categories', [])
+        if any(category.brand_id != brand.id for category in categories):
+            raise serializers.ValidationError(
+                {'category_ids': 'Toate categoriile trebuie să aparțină brandului selectat.'}
+            )
+        return attrs
+
+    def create(self, validated_data):
+        categories = validated_data.get('categories', [])
+        subscription, _ = BrandSubscription.objects.get_or_create(
+            user=self.context['request'].user, 
+            brand=validated_data['brand']
+        )
+        subscription.categories.set(categories)
+        return subscription
