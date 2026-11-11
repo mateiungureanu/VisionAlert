@@ -7,6 +7,9 @@ __pycache__/
 venv/
 env/
 
+# Scrapped images
+/core_app/var/scraper-temp/
+
 # Django
 *.log
 local_settings.py

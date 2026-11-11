@@ -1,6 +1,11 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator, URLValidator
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator,
+    URLValidator,
+)
+from django.db import models
 from django.db.models.functions import Lower
 
 # Create your models here.
@@ -100,7 +105,21 @@ class Offer(models.Model):
     categories = models.ManyToManyField(Category, blank=True, related_name='offers')
     title = models.CharField(max_length=300)
     description = models.TextField(blank=True)
+    products = models.JSONField(default=list, blank=True)
     terms = models.TextField(blank=True)
+    discount_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    previous_price = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True
+    )
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, null=True
+    )
     valid_from = models.DateTimeField(blank=True, null=True)
     valid_until = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import DeleteAccountView, LoginView, RegisterView, MeView, BrandListView, BrandSubscriptionListCreateView, BrandSubscriptionDeleteView
+from .views import DeleteAccountView, LoginView, RegisterView, MeView, BrandListView, BrandSubscriptionListCreateView, BrandSubscriptionDeleteView, MyOffersView
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view()),
@@ -10,5 +10,6 @@ urlpatterns = [
     path('auth/me/delete/', DeleteAccountView.as_view(), name='delete-account'),
     path('brands/', BrandListView.as_view(), name='brand-list'),
     path('subscriptions/', BrandSubscriptionListCreateView.as_view(), name='brand-subscription-list'),
-    path('subscriptions/<int:brand_id>/', BrandSubscriptionDeleteView.as_view(), name='brand-subscription-delete')
+    path('subscriptions/<int:brand_id>/', BrandSubscriptionDeleteView.as_view(), name='brand-subscription-delete'),
+    path('offers/mine/', MyOffersView.as_view(), name='my-offers'),
 ]

@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-from .models import User, Brand, Category, BrandSubscription
+from .models import User, Brand, Category, BrandSubscription, Offer, OfferSource
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -128,3 +128,37 @@ class BrandSubscriptionWriteSerializer(serializers.Serializer):
         )
         subscription.categories.set(categories)
         return subscription
+
+
+class OfferSerializer(serializers.ModelSerializer):
+    brand = serializers.CharField(source='brand.name', read_only=True)
+    brand_id = serializers.IntegerField(read_only=True)
+    categories = CategoryOptionSerializer(many=True, read_only=True)
+    source_urls = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id',
+            'brand',
+            'brand_id',
+            'title',
+            'description',
+            'products',
+            'terms',
+            'discount_percentage',
+            'previous_price',
+            'price',
+            'valid_from',
+            'valid_until',
+            'created_at',
+            'categories',
+            'source_urls',
+        ]
+
+    def get_source_urls(self, offer):
+        return [
+            source.url
+            for source in offer.sources.all()
+            if source.source_type == OfferSource.SourceType.WEBSITE
+        ]

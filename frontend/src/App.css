@@ -35,8 +35,61 @@ th { color: #666; font-weight: 500; padding: .4rem 0; }
 .secondary-button { background: #6b7280; white-space: nowrap; }
 .subscription-link { display: inline-block; margin-top: 1rem; padding: .7rem 1rem; background: #4f46e5; color: #fff; border-radius: 8px; text-decoration: none; }
 .success-message { color: #18743a; }
+.offers-page { max-width: 1180px; margin: 2rem auto; padding: 0 1.5rem 3rem; }
+.offers-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; margin-bottom: 2rem; }
+.offers-heading h1 { margin: .25rem 0; font-size: clamp(2rem, 4vw, 2.8rem); }
+.offers-heading p { color: #667085; margin: .5rem 0 0; }
+.offers-heading .subscription-link { margin: 0; white-space: nowrap; }
+.offers-eyebrow { color: #4f46e5 !important; font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
+.offers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; align-items: start; }
+.offers-total { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; padding: 1rem 1.25rem; background: #fff; border: 1px solid #e8eaf0; border-radius: 12px; color: #475467; }
+.offers-total strong { color: #4338ca; font-size: 1.5rem; }
+.brand-offers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem; }
+.brand-offers-card { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .35rem 1rem; padding: 1.35rem; background: #fff; border: 1px solid #e8eaf0; border-radius: 14px; color: inherit; text-decoration: none; box-shadow: 0 4px 16px rgba(16, 24, 40, .05); transition: border-color .15s, transform .15s; }
+.brand-offers-card:hover { border-color: #a5b4fc; transform: translateY(-2px); }
+.brand-offers-count { grid-row: span 2; color: #4338ca; font-size: 2rem; font-weight: 700; }
+.brand-offers-name { font-weight: 700; font-size: 1.1rem; }
+.brand-offers-label { color: #667085; font-size: .85rem; }
+.brand-offers-action { grid-column: 1 / -1; margin-top: .75rem; color: #4f46e5; font-size: .9rem; font-weight: 600; }
+.offer-category-groups { display: grid; gap: 2rem; }
+.offer-category-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .85rem; }
+.offer-category-heading h2 { margin: 0; font-size: 1.35rem; }
+.offer-category-heading span { color: #667085; font-size: .9rem; white-space: nowrap; }
+.category-count-note { margin: -1rem 0 1.5rem; color: #667085; font-size: .85rem; }
+.category-pills { display: flex; flex-wrap: wrap; gap: .65rem; margin: 0 0 1.75rem; }
+.category-pill { display: inline-flex; align-items: center; gap: .55rem; padding: .55rem .9rem; border: 1px solid #d0d5dd; border-radius: 999px; background: #fff; color: #344054; font: inherit; font-size: .9rem; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+.category-pill:hover { border-color: #818cf8; color: #4338ca; }
+.category-pill.selected { border-color: #4f46e5; background: #4f46e5; color: #fff; }
+.category-pill span { min-width: 1.35rem; padding: .1rem .35rem; border-radius: 999px; background: rgba(16, 24, 40, .08); font-size: .75rem; text-align: center; }
+.category-pill.selected span { background: rgba(255, 255, 255, .2); }
+.offer-card, .offers-empty { background: #fff; border: 1px solid #e8eaf0; border-radius: 14px; padding: 1.35rem; box-shadow: 0 4px 16px rgba(16, 24, 40, .05); }
+.offer-card h2 { margin: .9rem 0 .6rem; font-size: 1.25rem; line-height: 1.4; }
+.offer-pricing { display: flex; align-items: center; flex-wrap: wrap; gap: .85rem; margin: .75rem 0; }
+.offer-price-item { display: inline-flex; align-items: baseline; gap: .4rem; }
+.offer-price-label { color: #667085; font-size: .78rem; }
+.offer-previous-price { color: #667085; text-decoration: line-through; }
+.offer-current-price { color: #18743a; font-size: 1.15rem; }
+.offer-discount { padding: .25rem .65rem; border-radius: 999px; background: #ecfdf3; color: #18743a; font-size: .8rem; font-weight: 700; }
+.offer-card-top { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.offer-brand { color: #4338ca; background: #eef2ff; border-radius: 999px; padding: .3rem .65rem; font-weight: 700; font-size: .8rem; }
+.offer-category { color: #667085; font-size: .8rem; }
+.offer-description { color: #475467; white-space: pre-line; }
+.offer-detail { margin-top: 1rem; }
+.offer-detail strong { font-size: .85rem; }
+.offer-detail p { margin: .3rem 0 0; color: #475467; white-space: pre-line; }
+.offer-validity { color: #667085; font-size: .85rem; margin-top: 1rem; }
+.offer-card-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem; border-top: 1px solid #edf0f4; margin-top: 1.2rem; padding-top: 1rem; color: #667085; font-size: .8rem; }
+.offer-card-footer a { color: #4f46e5; font-weight: 600; text-decoration: none; }
+.offer-card-footer a:hover { text-decoration: underline; }
+.offers-empty { text-align: center; padding: 3rem 1.5rem; }
+.offers-empty p, .offers-status { color: #667085; }
+.offers-empty .subscription-link { margin-top: 1rem; }
+.offers-error { white-space: pre-line; }
 @media (max-width: 520px) {
   .navbar { padding: .75rem; }
   .nav-right { gap: .5rem; }
   .subscription-item { align-items: flex-start; flex-direction: column; }
+  .offers-page { padding: 0 1rem 2rem; }
+  .offers-heading { align-items: flex-start; flex-direction: column; }
+  .brand-offers-grid { grid-template-columns: 1fr; }
 }

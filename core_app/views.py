@@ -2,12 +2,14 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import LoginSerializer, RegisterSerializer, UserSerializer, BrandSerializer, CategoryOptionSerializer, BrandSubscriptionSerializer, BrandSubscriptionWriteSerializer
-from .models import Brand, BrandSubscription
+from .serializers import LoginSerializer, RegisterSerializer, UserSerializer, BrandSerializer, CategoryOptionSerializer, BrandSubscriptionSerializer, BrandSubscriptionWriteSerializer, OfferSerializer
+from .models import Brand, BrandSubscription, Offer
 
 
 class RegisterView(generics.CreateAPIView):
@@ -105,3 +107,40 @@ class BrandSubscriptionDeleteView(APIView):
         )
         subscription.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MyOffersView(generics.ListAPIView):
+    serializer_class = OfferSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        subscriptions = (
+            BrandSubscription.objects.filter(
+                user=self.request.user,
+                brand__fl_disabled=False,
+            )
+            .prefetch_related('categories')
+        )
+        subscription_filters = Q(pk__in=[])
+        for subscription in subscriptions:
+            category_ids = [
+                category.id
+                for category in subscription.categories.all()
+                if not category.fl_disabled
+            ]
+            subscription_filter = Q(brand_id=subscription.brand_id)
+            if category_ids:
+                subscription_filter &= (
+                    Q(categories__id__in=category_ids)
+                    | Q(categories__isnull=True)
+                )
+            subscription_filters |= subscription_filter
+
+        return (
+            Offer.objects.filter(subscription_filters)
+            .filter(Q(valid_until__isnull=True) | Q(valid_until__gte=timezone.now()))
+            .distinct()
+            .select_related('brand')
+            .prefetch_related('categories', 'sources')
+            .order_by('-created_at', '-id')
+        )
