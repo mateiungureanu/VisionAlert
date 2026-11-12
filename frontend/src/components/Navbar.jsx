@@ -13,6 +13,8 @@ export default function Navbar() {
     <nav className="navbar">
       <Link to="/" className="brand">VisionAlert</Link>
       <div className="nav-right">
+        <Link to="/">Ofertele mele</Link>
+        <Link to="/subscriptions">Abonamente</Link>
         <Link to="/profile" className="avatar" title="Profilul meu">{initials}</Link>
         <button onClick={() => { logout(); navigate('/login'); }}>Logout</button>
       </div>

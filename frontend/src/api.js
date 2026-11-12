@@ -18,6 +18,11 @@ export const registerUser = (body) => request('/auth/register/', { method: 'POST
 export const loginUser = (body) => request('/auth/login/', { method: 'POST', body });
 export const getMe = (token) => request('/auth/me/', { token });
 export const deleteAccount = (token) => request('/auth/me/delete/', { method: 'DELETE', token });
+export const getBrands = (token) => request('/brands/', { token });
+export const getBrandSubscriptions = (token) => request('/subscriptions/', { token });
+export const getMyOffers = (token) => request('/offers/mine/', { token });
+export const saveBrandSubscription = (body, token) => request('/subscriptions/', { method: 'POST', body, token });
+export const deleteBrandSubscription = (brandId, token) => request(`/subscriptions/${brandId}/`, { method: 'DELETE', token });
 
 export function formatErrors(err) {
   const d = err?.data;
