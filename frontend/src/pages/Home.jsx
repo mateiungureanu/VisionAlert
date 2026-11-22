@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import OfferCard from '../components/OfferCard';
 import FilterDropdown from '../components/FilterDropdown';
 import { useAuth } from '../AuthContext';
+import { discountLabel, discountOrder } from '../discounts';
 import {
   formatErrors,
   getBrandSubscriptions,
@@ -13,18 +14,6 @@ import {
 } from '../api';
 
 const PAGE_SIZE = 12;
-
-function discountLabel(key) {
-  if (key === 'none') return 'Fără reducere specificată';
-  const start = Number(key);
-  if (start === 0) return 'Sub 10%';
-  if (start >= 50) return '50% sau mai mult';
-  return `${start}–${start + 9}%`;
-}
-
-function discountOrder(key) {
-  return key === 'none' ? Infinity : Number(key);
-}
 
 export default function Home() {
   const { token, user } = useAuth();

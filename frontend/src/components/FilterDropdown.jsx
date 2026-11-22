@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-function normalize(value) {
-  return value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
-}
+import { normalizeText } from '../text';
 
 export default function FilterDropdown({
   label,
@@ -40,9 +34,9 @@ export default function FilterDropdown({
     };
   }, [open]);
 
-  const normalizedQuery = normalize(query.trim());
+  const normalizedQuery = normalizeText(query.trim());
   const visibleOptions = normalizedQuery
-    ? options.filter((option) => normalize(option.name).includes(normalizedQuery))
+    ? options.filter((option) => normalizeText(option.name).includes(normalizedQuery))
     : options;
   const selectedOptions = options.filter((option) => selectedIds.includes(option.id));
 

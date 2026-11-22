@@ -89,9 +89,6 @@ export default function FollowedBrands() {
             <h1>Brandurile urmărite</h1>
             <p>Marchează cu stea brandurile favorite ca să le vezi ofertele pe pagina principală.</p>
           </div>
-          <Link className="subscription-link" to="/subscriptions">
-            Gestionează abonamentele
-          </Link>
         </header>
 
         {error && <p className="error offers-error" role="alert">{error}</p>}

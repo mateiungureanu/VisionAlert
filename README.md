@@ -41,7 +41,12 @@ per subscribed brand with its active offer count. The star on each card marks
 the brand as a favorite; this is stored as `is_favorite` on the brand
 subscription. The dropdown above the cards shows only the selected brands.
 Select a brand to open its offer page, where
-offers are grouped by category with a count for each group. An offer associated
+offers can be narrowed, on a single row, with a category dropdown (shown only
+when the brand has categories), the same discount-band dropdown as the home
+feed (shown only when at least one offer has a discount) and a title search
+(diacritics-insensitive). Offers are grouped by category with a count for each
+group. When more than one category is shown, each section can
+be collapsed or expanded individually, or all at once. An offer associated
 with multiple categories appears in each relevant group. Selecting categories
 filters offers to those categories; offers without a category remain visible
 because some scrapers cannot classify every offer. Subscriptions without
