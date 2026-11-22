@@ -24,6 +24,68 @@ function formatValidity(offer) {
   }`;
 }
 
+function ShareOffer({ offer }) {
+  const [status, setStatus] = useState('');
+  const sourceUrl = offer.source_urls[0];
+  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  if (!sourceUrl) return null;
+
+  async function copyLink(event) {
+    event.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(sourceUrl);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = sourceUrl;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+    setStatus('Link copiat');
+  }
+
+  async function nativeShare(event) {
+    event.stopPropagation();
+    try {
+      await navigator.share({
+        title: offer.title,
+        text: `${offer.brand} - ${offer.title}`,
+        url: sourceUrl,
+      });
+    } catch (error) {
+      if (error?.name !== 'AbortError') setStatus('Distribuirea nu a putut fi finalizată');
+    }
+  }
+
+  return (
+    <span className="offer-share-actions">
+      {canNativeShare && (
+        <button
+          type="button"
+          className="offer-share-button"
+          onClick={nativeShare}
+          aria-label={`Distribuie oferta ${offer.title}`}
+        >
+          Distribuie
+        </button>
+      )}
+      <button
+        type="button"
+        className="offer-share-button"
+        onClick={copyLink}
+        aria-label={`Copiază linkul pentru oferta ${offer.title}`}
+      >
+        Copiază link
+      </button>
+      <span className="offer-share-status" role="status" aria-live="polite">{status}</span>
+    </span>
+  );
+}
+
 function OfferPricing({ offer }) {
   const hasPricing =
     offer.price != null ||
@@ -121,11 +183,14 @@ function OfferDialog({ offer, onClose }) {
         <OfferDetails offer={offer} headingId={headingId} />
         <div className="offer-card-footer">
           <span>Adăugată {formatDate(offer.created_at)}</span>
-          {offer.source_urls.map((url) => (
-            <a href={url} key={url} target="_blank" rel="noreferrer">
-              Vezi oferta <span aria-hidden="true">↗</span>
-            </a>
-          ))}
+          <span className="offer-footer-actions">
+            {offer.source_urls.map((url) => (
+              <a href={url} key={url} target="_blank" rel="noreferrer">
+                Vezi oferta <span aria-hidden="true">↗</span>
+              </a>
+            ))}
+            <ShareOffer offer={offer} />
+          </span>
         </div>
       </div>
     </dialog>,
@@ -178,17 +243,20 @@ export default function OfferCard({ offer }) {
         </div>
         <div className="offer-card-footer">
           <span>Adăugată {formatDate(offer.created_at)}</span>
-          {offer.source_urls.map((url) => (
-            <a
-              href={url}
-              key={url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(event) => event.stopPropagation()}
-            >
-              Vezi oferta <span aria-hidden="true">↗</span>
-            </a>
-          ))}
+          <span className="offer-footer-actions">
+            {offer.source_urls.map((url) => (
+              <a
+                href={url}
+                key={url}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(event) => event.stopPropagation()}
+              >
+                Vezi oferta <span aria-hidden="true">↗</span>
+              </a>
+            ))}
+            <ShareOffer offer={offer} />
+          </span>
         </div>
       </article>
       {open && <OfferDialog offer={offer} onClose={() => setOpen(false)} />}

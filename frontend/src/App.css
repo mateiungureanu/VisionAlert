@@ -76,6 +76,11 @@ button { padding: .6rem 1rem; border: 0; border-radius: 8px; background: var(--u
 .offer-card-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem; border-top: 1px solid var(--ui-border); margin-top: 1.2rem; padding-top: 1rem; color: var(--ui-muted); font-size: .8rem; }
 .offer-card-footer a { color: var(--ui-primary-text); font-weight: 600; text-decoration: none; }
 .offer-card-footer a:hover { text-decoration: underline; }
+.offer-footer-actions, .offer-share-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .55rem; }
+.offer-share-button { padding: .35rem .65rem; border: 1px solid var(--ui-border-strong); border-radius: 999px; background: var(--ui-surface); color: var(--ui-text-soft); font: inherit; font-size: .78rem; font-weight: 600; cursor: pointer; }
+.offer-share-button:hover { border-color: var(--ui-hover-border); color: var(--ui-primary-text); }
+.offer-share-button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 2px; }
+.offer-share-status { color: var(--ui-success); font-size: .75rem; }
 .offers-empty { text-align: center; padding: 3rem 1.5rem; }
 .offers-empty p, .offers-status { color: var(--ui-muted); }
 .offers-empty .subscription-link { margin-top: 1rem; }
