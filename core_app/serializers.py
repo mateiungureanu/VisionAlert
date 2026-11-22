@@ -96,7 +96,11 @@ class BrandSubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BrandSubscription
-        fields = ['id', 'brand', 'categories', 'created_at']
+        fields = ['id', 'brand', 'categories', 'is_favorite', 'created_at']
+
+
+class BrandSubscriptionFavoriteSerializer(serializers.Serializer):
+    is_favorite = serializers.BooleanField()
 
 
 class BrandSubscriptionWriteSerializer(serializers.Serializer):

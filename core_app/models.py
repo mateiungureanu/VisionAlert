@@ -70,6 +70,7 @@ class BrandSubscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='brand_subscriptions')
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='subscriptions')
     categories = models.ManyToManyField(Category, blank=True, related_name='subscriptions')
+    is_favorite = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -2,9 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VisionAlert</title>
+    <script>
+      // Apply the saved theme before the first paint (keep in sync with src/useTheme.js).
+      (function () {
+        var mode = 'system';
+        try { mode = localStorage.getItem('visionalert-theme') || 'system'; } catch (e) {}
+        var dark = mode === 'dark' ||
+          (mode !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

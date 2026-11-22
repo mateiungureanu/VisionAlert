@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import AuthLayout from '../components/AuthLayout';
 
 export default function Login() {
   const { login } = useAuth();
@@ -33,17 +34,18 @@ export default function Login() {
   }
 
   return (
-    <div className="card">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input placeholder="Nume de utilizator sau e-mail" value={identifier}
+    <AuthLayout title="Autentificare">
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <input placeholder="Nume de utilizator sau e-mail" aria-label="Nume de utilizator sau e-mail"
+               autoComplete="username" value={identifier}
                onChange={(e) => setIdentifier(e.target.value)} required />
-        <input type="password" placeholder="Parolă" value={password}
+        <input type="password" placeholder="Parolă" aria-label="Parolă"
+               autoComplete="current-password" value={password}
                onChange={(e) => setPassword(e.target.value)} required />
-        {error && <p className="error">{error}</p>}
+        {error && <p className="auth-error" role="alert">{error}</p>}
         <button type="submit">Intră în cont</button>
       </form>
-      <p>Nu ai cont? <Link to="/register">Creează unul</Link></p>
-    </div>
+      <p className="auth-switch">Nu ai cont? <Link to="/register">Creează unul</Link></p>
+    </AuthLayout>
   );
 }

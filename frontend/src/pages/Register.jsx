@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { registerUser, formatErrors } from '../api';
+import AuthLayout from '../components/AuthLayout';
 
 const PASSWORD_RE = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,64}$/;
 
@@ -32,20 +33,21 @@ export default function Register() {
   }
 
   return (
-    <div className="card">
-      <h2>Creează cont</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="first_name" placeholder="Prenume" onChange={change} required />
-        <input name="last_name" placeholder="Nume" onChange={change} required />
-        <input name="username" placeholder="Nume de utilizator" onChange={change} required />
-        <input name="email" type="email" placeholder="Adresă de e-mail" onChange={change} required />
-        <input name="phone" placeholder="Număr de telefon (opțional)" onChange={change} />
-        <input name="password" type="password" placeholder="Parolă" onChange={change} required />
-        <input name="confirm" type="password" placeholder="Confirmă parola" onChange={change} required />
-        {error && <p className="error" style={{ whiteSpace: 'pre-line' }}>{error}</p>}
+    <AuthLayout title="Creează cont" wide>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="auth-row">
+          <input name="first_name" placeholder="Prenume" aria-label="Prenume" autoComplete="given-name" onChange={change} required />
+          <input name="last_name" placeholder="Nume" aria-label="Nume" autoComplete="family-name" onChange={change} required />
+        </div>
+        <input name="username" placeholder="Nume de utilizator" aria-label="Nume de utilizator" autoComplete="username" onChange={change} required />
+        <input name="email" type="email" placeholder="Adresă de e-mail" aria-label="Adresă de e-mail" autoComplete="email" onChange={change} required />
+        <input name="phone" placeholder="Număr de telefon (opțional)" aria-label="Număr de telefon (opțional)" autoComplete="tel" onChange={change} />
+        <input name="password" type="password" placeholder="Parolă" aria-label="Parolă" autoComplete="new-password" onChange={change} required />
+        <input name="confirm" type="password" placeholder="Confirmă parola" aria-label="Confirmă parola" autoComplete="new-password" onChange={change} required />
+        {error && <p className="auth-error" role="alert">{error}</p>}
         <button type="submit">Înregistrează-mă</button>
       </form>
-      <p>Ai deja cont? <Link to="/login">Login</Link></p>
-    </div>
+      <p className="auth-switch">Ai deja cont? <Link to="/login">Autentifică-te</Link></p>
+    </AuthLayout>
   );
 }
