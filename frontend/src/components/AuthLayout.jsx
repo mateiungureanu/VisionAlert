@@ -6,10 +6,10 @@ import { useTheme } from '../useTheme';
 const LOGO_SRC = '/logo.jpg';
 
 export default function AuthLayout({ title, wide = false, children }) {
-  const { preference, setPreference, resolved } = useTheme();
+  const { preference, setPreference } = useTheme();
 
   return (
-    <div className="auth-page" data-theme={resolved}>
+    <div className="auth-page">
       <div className="auth-theme-switch">
         <ThemeToggle preference={preference} onChange={setPreference} />
       </div>
@@ -20,7 +20,7 @@ export default function AuthLayout({ title, wide = false, children }) {
           </span>
           <span className="auth-brand-name">VisionAlert</span>
         </div>
-        <p className="auth-tagline">Ofertele brandurilor tale favorite, într-un singur loc</p>
+        <p className="auth-tagline">Nicio ofertă bună nu-ți mai scapă</p>
         <section className={`auth-card${wide ? ' wide' : ''}`}>
           <h1 className="auth-title">{title}</h1>
           {children}

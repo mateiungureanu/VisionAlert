@@ -1,7 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
+// One theme for the whole app. The choice ('light' | 'dark' | 'system') is kept
+// in localStorage and the resolved theme is written to <html data-theme="...">,
+// where the CSS variables in App.css pick it up. index.html applies the same
+// logic before React loads so the page never flashes the wrong theme.
 const STORAGE_KEY = 'visionalert-theme';
 export const THEME_MODES = ['light', 'dark', 'system'];
+
+const listeners = new Set();
+const darkQuery =
+  typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-color-scheme: dark)')
+    : null;
 
 function readPreference() {
   try {
@@ -12,35 +22,45 @@ function readPreference() {
   }
 }
 
-function systemQuery() {
-  return typeof window !== 'undefined' && window.matchMedia
-    ? window.matchMedia('(prefers-color-scheme: dark)')
-    : null;
+let preference = readPreference();
+
+function resolve(current) {
+  if (current === 'system') return darkQuery?.matches ? 'dark' : 'light';
+  return current;
 }
 
-// Returns the user's choice ('light' | 'dark' | 'system') and the theme that
-// actually applies ('light' | 'dark'), following the OS setting for 'system'.
-export function useTheme() {
-  const [preference, setPreferenceState] = useState(readPreference);
-  const [systemDark, setSystemDark] = useState(() => systemQuery()?.matches ?? false);
+function applyTheme() {
+  document.documentElement.dataset.theme = resolve(preference);
+}
 
-  useEffect(() => {
-    const query = systemQuery();
-    if (!query) return undefined;
-    const handleChange = (event) => setSystemDark(event.matches);
-    query.addEventListener('change', handleChange);
-    return () => query.removeEventListener('change', handleChange);
-  }, []);
+function notify() {
+  applyTheme();
+  listeners.forEach((listener) => listener());
+}
 
-  function setPreference(next) {
-    setPreferenceState(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // Storage can be unavailable (private mode); the choice then lasts for this visit only.
-    }
+if (typeof document !== 'undefined') {
+  applyTheme();
+  darkQuery?.addEventListener('change', notify);
+}
+
+function subscribe(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function setPreference(next) {
+  preference = next;
+  try {
+    localStorage.setItem(STORAGE_KEY, next);
+  } catch {
+    // Storage can be unavailable (private mode); the choice then lasts for this visit only.
   }
+  notify();
+}
 
-  const resolved = preference === 'system' ? (systemDark ? 'dark' : 'light') : preference;
-  return { preference, setPreference, resolved };
+// Returns the user's choice and the theme that actually applies.
+export function useTheme() {
+  const currentPreference = useSyncExternalStore(subscribe, () => preference);
+  const resolved = useSyncExternalStore(subscribe, () => resolve(preference));
+  return { preference: currentPreference, setPreference, resolved };
 }

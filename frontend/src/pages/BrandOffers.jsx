@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 import OfferCard from '../components/OfferCard';
 import FilterDropdown from '../components/FilterDropdown';
 import { useAuth } from '../AuthContext';
@@ -44,6 +43,7 @@ export default function BrandOffers() {
     (item) => String(item.brand.id) === brandId,
   );
   const brandName = subscription?.brand.name || offers[0]?.brand;
+  const subscribedCategories = subscription?.categories ?? [];
 
   const searchedOffers = useMemo(() => {
     const query = normalizeText(search.trim());
@@ -146,11 +146,16 @@ export default function BrandOffers() {
     setSelectedDiscounts([]);
   }
 
+  const backLink = (
+    <Link className="back-link" to="/brands">
+      <span className="back-link-arrow" aria-hidden="true">←</span>
+      Brandurile urmărite
+    </Link>
+  );
+
   return (
     <>
-      <Navbar />
       <main className="offers-page">
-        <Link className="back-link" to="/brands">← Brandurile urmărite</Link>
         {error && <p className="error offers-error" role="alert">{error}</p>}
         {loading ? (
           <p className="offers-status" role="status">Se încarcă ofertele...</p>
@@ -158,21 +163,34 @@ export default function BrandOffers() {
           <section className="offers-empty">
             <h1>Ofertele nu au putut fi încărcate</h1>
             <p>Verifică dacă serverul este disponibil și încearcă din nou.</p>
+            <div className="offers-empty-actions">{backLink}</div>
           </section>
         ) : !subscription ? (
           <section className="offers-empty">
             <h1>Brandul nu este în abonamentele tale</h1>
             <p>Abonează-te la acest brand pentru a vedea ofertele.</p>
             <Link className="subscription-link" to="/subscriptions">Gestionează abonamentele</Link>
+            <div className="offers-empty-actions">{backLink}</div>
           </section>
         ) : (
           <>
-            <header className="offers-heading">
-              <div>
-                <p className="offers-eyebrow">OFERTE DE LA BRAND</p>
-                <h1>{brandName}</h1>
-                <p>{offers.length} {offers.length === 1 ? 'ofertă activă' : 'oferte active'}</p>
+            <header className="brand-heading">
+              <div className="brand-heading-main">
+                <span className="brand-avatar brand-avatar-large" aria-hidden="true">
+                  {brandName?.[0]?.toUpperCase()}
+                </span>
+                <div>
+                  <p className="offers-eyebrow">OFERTE DE LA BRAND</p>
+                  <h1>{brandName}</h1>
+                  <p className="brand-heading-meta">
+                    {offers.length} {offers.length === 1 ? 'ofertă activă' : 'oferte active'}
+                    {subscribedCategories.length > 0 && (
+                      <> · Categorii urmărite: {subscribedCategories.map((category) => category.name).join(', ')}</>
+                    )}
+                  </p>
+                </div>
               </div>
+              {backLink}
             </header>
             {offers.length === 0 ? (
               <section className="offers-empty">
@@ -227,39 +245,50 @@ export default function BrandOffers() {
                 ) : (
                   <>
                     {collapsible && (
-                      <button className="collapse-all" type="button" onClick={toggleAllCollapsed}>
-                        {allCollapsed ? 'Extinde toate categoriile' : 'Restrânge toate categoriile'}
-                      </button>
+                      <div className="sections-bar">
+                        <span>
+                          {visibleGroups.length} categorii
+                        </span>
+                        <button className="collapse-all" type="button" onClick={toggleAllCollapsed}>
+                          {allCollapsed ? 'Extinde toate' : 'Restrânge toate'}
+                        </button>
+                      </div>
                     )}
                     <section className="offer-category-groups" aria-label={`Oferte ${brandName} pe categorii`}>
                       {visibleGroups.map((group) => {
                         const isCollapsed = collapsible && collapsedIds.includes(group.id);
                         const count = `${group.offers.length} ${group.offers.length === 1 ? 'ofertă' : 'oferte'}`;
+                        const bodyId = `category-body-${group.id}`;
                         return (
                           <section className="offer-category-group" key={group.id}>
-                            <header className="offer-category-heading">
-                              {collapsible ? (
+                            {collapsible ? (
+                              <h2 className="offer-category-heading">
                                 <button
-                                  className="offer-category-toggle"
+                                  className={`offer-category-toggle${isCollapsed ? ' collapsed' : ''}`}
                                   type="button"
                                   aria-expanded={!isCollapsed}
+                                  aria-controls={bodyId}
                                   onClick={() => toggleCollapsed(group.id)}
                                 >
                                   <span className="offer-category-chevron" aria-hidden="true">
-                                    {isCollapsed ? '▸' : '▾'}
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M6 9l6 6 6-6" />
+                                    </svg>
                                   </span>
-                                  <h2>{group.name}</h2>
-                                  <span>{count}</span>
+                                  <span className="offer-category-name">{group.name}</span>
+                                  <span className="offer-category-line" aria-hidden="true" />
+                                  <span className="offer-category-count">{count}</span>
                                 </button>
-                              ) : (
-                                <>
-                                  <h2>{group.name}</h2>
-                                  <span>{count}</span>
-                                </>
-                              )}
-                            </header>
+                              </h2>
+                            ) : (
+                              <h2 className="offer-category-heading offer-category-static">
+                                <span className="offer-category-name">{group.name}</span>
+                                <span className="offer-category-line" aria-hidden="true" />
+                                <span className="offer-category-count">{count}</span>
+                              </h2>
+                            )}
                             {!isCollapsed && (
-                              <div className="offers-grid">
+                              <div className="offers-grid" id={bodyId}>
                                 {group.offers.map((offer) => (
                                   <OfferCard offer={offer} key={`${group.id}-${offer.id}`} />
                                 ))}

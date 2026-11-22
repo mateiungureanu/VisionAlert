@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 import { useAuth } from '../AuthContext';
 import {
   deleteBrandSubscription,
@@ -102,30 +100,38 @@ export default function BrandSubscriptions() {
   }
 
   return (
-    <>
-      <Navbar />
-      <main className="subscriptions-page">
-        <Link to="/" className="back-link">← Înapoi la Home</Link>
-        <h1>Abonamente la branduri</h1>
-        <p>Alege brandurile și categoriile pentru care vrei să primești alerte.</p>
+    <main className="offers-page">
+      <header className="offers-heading">
+        <div>
+          <p className="offers-eyebrow">ABONAMENTE</p>
+          <h1>Abonamente la branduri</h1>
+          <p>Alege brandurile și categoriile pentru care vrei să primești alerte.</p>
+        </div>
+      </header>
 
-        {error && <p className="error" role="alert">{error}</p>}
-        {message && <p className="success-message" role="status">{message}</p>}
+      {error && <p className="notice error" role="alert">{error}</p>}
+      {message && <p className="notice success" role="status">{message}</p>}
 
-        {loading ? (
-          <p>Se încarcă brandurile...</p>
-        ) : (
-          <div className="subscriptions-layout">
-            <section className="subscription-panel">
-              <h2>{currentSubscription ? 'Preferințele tale' : 'Abonează-te la un brand'}</h2>
-              {brands.length === 0 ? (
-                <p>Nu există momentan branduri disponibile.</p>
-              ) : (
-                <form onSubmit={submitSubscription}>
-                  <label className="subscription-label" htmlFor="brand-select">Brand</label>
+      {loading ? (
+        <div className="sub-layout" role="status" aria-label="Se încarcă brandurile">
+          <div className="panel-skeleton" aria-hidden="true" />
+          <div className="panel-skeleton" aria-hidden="true" />
+        </div>
+      ) : (
+        <div className="sub-layout">
+          <section className="sub-panel" aria-labelledby="sub-form-title">
+            <h2 id="sub-form-title">
+              {currentSubscription ? 'Preferințele tale' : 'Abonează-te la un brand'}
+            </h2>
+            {brands.length === 0 ? (
+              <p className="sub-empty">Nu există momentan branduri disponibile.</p>
+            ) : (
+              <form className="sub-form" onSubmit={submitSubscription}>
+                <div>
+                  <label className="field-label" htmlFor="brand-select">Brand</label>
                   <select
                     id="brand-select"
-                    className="brand-select"
+                    className="select-field"
                     value={selectedBrandId}
                     onChange={chooseBrand}
                   >
@@ -133,67 +139,92 @@ export default function BrandSubscriptions() {
                       <option key={brand.id} value={brand.id}>{brand.name}</option>
                     ))}
                   </select>
+                </div>
 
-                  <fieldset className="category-list">
-                    <legend>Categorii</legend>
-                    {!selectedBrand?.categories.length ? (
-                      <p>Acest brand nu are categorii configurate. Abonamentul va include toate ofertele.</p>
-                    ) : (
-                      selectedBrand.categories.map((category) => (
-                        <label className="category-option" key={category.id}>
-                          <input
-                            type="checkbox"
-                            checked={selectedCategoryIds.includes(category.id)}
-                            onChange={() => toggleCategory(category.id)}
-                          />
-                          {category.name}
-                        </label>
-                      ))
-                    )}
-                  </fieldset>
-
-                  <button type="submit" disabled={saving}>
-                    {saving
-                      ? 'Se salvează...'
-                      : currentSubscription
-                        ? 'Salvează preferințele'
-                        : 'Abonează-te'}
-                  </button>
-                </form>
-              )}
-            </section>
-
-            <section className="subscription-panel">
-              <h2>Abonamentele mele</h2>
-              {subscriptions.length === 0 ? (
-                <p>Nu ești abonat la niciun brand.</p>
-              ) : (
-                <ul className="subscription-list">
-                  {subscriptions.map((subscription) => (
-                    <li className="subscription-item" key={subscription.id}>
-                      <div>
-                        <strong>{subscription.brand.name}</strong>
-                        <p>
-                          {subscription.categories.length
-                            ? subscription.categories.map((category) => category.name).join(', ')
-                            : 'Toate categoriile'}
-                        </p>
+                <fieldset className="sub-categories">
+                  <legend className="field-label">Categorii</legend>
+                  {!selectedBrand?.categories.length ? (
+                    <p className="sub-hint">
+                      Acest brand nu are categorii configurate. Abonamentul va include toate ofertele.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="choice-chips">
+                        {selectedBrand.categories.map((category) => {
+                          const checked = selectedCategoryIds.includes(category.id);
+                          return (
+                            <label
+                              className={`choice-chip${checked ? ' selected' : ''}`}
+                              key={category.id}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleCategory(category.id)}
+                              />
+                              {category.name}
+                            </label>
+                          );
+                        })}
                       </div>
-                      <button
-                        className="secondary-button"
-                        type="button"
-                        onClick={() => unsubscribe(subscription.brand.id)}
-                      >
-                        Dezabonează-te
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                      <p className="sub-hint">
+                        {selectedCategoryIds.length === 0
+                          ? 'Nicio categorie aleasă: vei primi toate ofertele brandului.'
+                          : `${selectedCategoryIds.length} ${selectedCategoryIds.length === 1 ? 'categorie aleasă' : 'categorii alese'}.`}
+                      </p>
+                    </>
+                  )}
+                </fieldset>
+
+                <button className="primary-button" type="submit" disabled={saving}>
+                  {saving
+                    ? 'Se salvează...'
+                    : currentSubscription
+                      ? 'Salvează preferințele'
+                      : 'Abonează-te'}
+                </button>
+              </form>
+            )}
+          </section>
+
+          <section className="sub-panel" aria-labelledby="sub-list-title">
+            <h2 id="sub-list-title">
+              Abonamentele mele
+              {subscriptions.length > 0 && (
+                <span className="sub-count">{subscriptions.length}</span>
               )}
-            </section>
-          </div>
-        )}
-      </main>
-    </>
+            </h2>
+            {subscriptions.length === 0 ? (
+              <p className="sub-empty">Nu ești abonat la niciun brand.</p>
+            ) : (
+              <ul className="sub-list">
+                {subscriptions.map((subscription) => (
+                  <li className="sub-row" key={subscription.id}>
+                    <span className="brand-avatar" aria-hidden="true">
+                      {subscription.brand.name[0]?.toUpperCase()}
+                    </span>
+                    <div className="sub-row-info">
+                      <strong>{subscription.brand.name}</strong>
+                      <span>
+                        {subscription.categories.length
+                          ? subscription.categories.map((category) => category.name).join(', ')
+                          : 'Toate categoriile'}
+                      </span>
+                    </div>
+                    <button
+                      className="ghost-danger"
+                      type="button"
+                      onClick={() => unsubscribe(subscription.brand.id)}
+                    >
+                      Dezabonează-te
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      )}
+    </main>
   );
 }

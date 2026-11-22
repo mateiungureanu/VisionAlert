@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -13,13 +14,15 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-      <Route path="/brands" element={<ProtectedRoute><FollowedBrands /></ProtectedRoute>} />
-      <Route path="/offers" element={<Navigate to="/brands" replace />} />
-      <Route path="/offers/:brandId" element={<ProtectedRoute><BrandOffers /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+        <Route path="/" element={<Home />} />
+        <Route path="/brands" element={<FollowedBrands />} />
+        <Route path="/offers" element={<Navigate to="/brands" replace />} />
+        <Route path="/offers/:brandId" element={<BrandOffers />} />
+        <Route path="/subscriptions" element={<BrandSubscriptions />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
       <Route path="*" element={<Navigate to="/" />} />
-      <Route path="/subscriptions" element={<ProtectedRoute><BrandSubscriptions /></ProtectedRoute>} />
     </Routes>
   );
 }
