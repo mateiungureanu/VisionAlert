@@ -26,8 +26,21 @@ npm run dev
 
 Open the frontend at `http://localhost:5173`.
 
-After signing in, the home page shows the total number of active offers and
-groups them by subscribed brand. Select a brand to open its offer page, where
+After signing in, the home page (`/`) greets the user, shows how many active
+offers come from the brands they follow, and lists offers from their favorite
+brands. The favorites feed is paginated (12 offers per page) and can be
+narrowed with the "Branduri" dropdown (multi-select with search) and with a
+search box that matches words in the offer title (not the description), and
+with a "Reducere" dropdown. Its options are discount bands (below 10%, 10–19%,
+..., 50% or more, plus "Fără reducere specificată") built from the offers that
+currently exist, each with its offer count. If no
+brand is marked as favorite, the page links to the followed-brands page.
+
+The followed-brands page (`/brands`, previously the home page) shows one card
+per subscribed brand with its active offer count. The star on each card marks
+the brand as a favorite; this is stored as `is_favorite` on the brand
+subscription. The dropdown above the cards shows only the selected brands.
+Select a brand to open its offer page, where
 offers are grouped by category with a count for each group. An offer associated
 with multiple categories appears in each relevant group. Selecting categories
 filters offers to those categories; offers without a category remain visible
@@ -36,6 +49,19 @@ selected categories show all offers from that brand.
 When the source explicitly provides them, offer cards also show the discount
 percentage, previous price, and current price. Prices are stored as RON amounts;
 offers without extractable price details keep those fields empty.
+
+### Favorites API
+
+- `PATCH /api/subscriptions/<brand_id>/favorite/` with `{"is_favorite": true}`
+  marks or unmarks a subscribed brand as favorite.
+- `GET /api/offers/favorites/` returns the paginated active offers of favorite
+  brands. Optional query parameters: `page`, `brands=1,3` (brand ids) and
+  `search=text` (case-insensitive match on the offer title) and
+  `discounts=10,50,none` (discount band starts; `0` is below 10%, `50` is 50% or
+  more, `none` is offers without a discount).
+- `GET /api/offers/favorites/discounts/` returns the discount bands that exist,
+  as `[{"key": "10", "count": 2}, ...]`. It honors `brands` and `search`, but not
+  `discounts`.
 
 ## Offer email summaries
 

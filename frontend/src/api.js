@@ -21,6 +21,17 @@ export const deleteAccount = (token) => request('/auth/me/delete/', { method: 'D
 export const getBrands = (token) => request('/brands/', { token });
 export const getBrandSubscriptions = (token) => request('/subscriptions/', { token });
 export const getMyOffers = (token) => request('/offers/mine/', { token });
+export const setBrandFavorite = (brandId, isFavorite, token) => request(`/subscriptions/${brandId}/favorite/`, { method: 'PATCH', body: { is_favorite: isFavorite }, token });
+function favoriteOfferParams({ page, brandIds = [], search = '', discounts = [] }) {
+  const params = new URLSearchParams();
+  if (page) params.set('page', String(page));
+  if (brandIds.length) params.set('brands', brandIds.join(','));
+  if (search.trim()) params.set('search', search.trim());
+  if (discounts.length) params.set('discounts', discounts.join(','));
+  return params;
+}
+export const getFavoriteOffers = (token, filters = {}) => request(`/offers/favorites/?${favoriteOfferParams({ page: 1, ...filters })}`, { token });
+export const getFavoriteOfferDiscounts = (token, filters = {}) => request(`/offers/favorites/discounts/?${favoriteOfferParams({ ...filters, page: 0 })}`, { token });
 export const saveBrandSubscription = (body, token) => request('/subscriptions/', { method: 'POST', body, token });
 export const deleteBrandSubscription = (brandId, token) => request(`/subscriptions/${brandId}/`, { method: 'DELETE', token });
 

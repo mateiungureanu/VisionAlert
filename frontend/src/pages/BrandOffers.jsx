@@ -92,7 +92,7 @@ export default function BrandOffers() {
     <>
       <Navbar />
       <main className="offers-page">
-        <Link className="back-link" to="/offers">← Toate brandurile</Link>
+        <Link className="back-link" to="/brands">← Brandurile urmărite</Link>
         {error && <p className="error offers-error" role="alert">{error}</p>}
         {loading ? (
           <p className="offers-status" role="status">Se încarcă ofertele...</p>
