@@ -129,6 +129,21 @@ class Offer(models.Model):
         return f"{self.brand.name} - {self.title}"
     
 
+class FavoriteOffer(models.Model):
+    """Association table: a user can favorite many offers, an offer can be favorited by many users."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_offers')
+    offer = models.ForeignKey(Offer, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'offer'], name='unique_user_favorite_offer'),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.offer}"
+
+
 class OfferSource(models.Model):
     class SourceType(models.TextChoices):
         WEBSITE = "website", "Website"

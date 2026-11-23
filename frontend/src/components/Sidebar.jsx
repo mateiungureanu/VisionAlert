@@ -27,6 +27,9 @@ const BrandsIcon = () => (
     <path d="M10 20v-4h4v4" />
   </svg>
 );
+const HeartIcon = () => (
+  <svg {...ICON}><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z" /></svg>
+);
 const SubscriptionsIcon = () => (
   <svg {...ICON}><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8" /><path d="M13.7 20a2 2 0 0 1-3.4 0" /></svg>
 );
@@ -50,6 +53,12 @@ const SECTIONS = [
         label: 'Brandurile urmărite',
         icon: <BrandsIcon />,
         match: (path) => path.startsWith('/brands') || path.startsWith('/offers'),
+      },
+      {
+        to: '/favorite-offers',
+        label: 'Oferte favorite',
+        icon: <HeartIcon />,
+        match: (path) => path.startsWith('/favorite-offers'),
       },
     ],
   },

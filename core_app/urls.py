@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import DeleteAccountView, LoginView, RegisterView, MeView, BrandListView, BrandSubscriptionListCreateView, BrandSubscriptionDeleteView, BrandSubscriptionFavoriteView, FavoriteOfferDiscountsView, FavoriteOffersView, MyOffersView
+from .views import DeleteAccountView, LoginView, RegisterView, MeView, BrandListView, BrandSubscriptionListCreateView, BrandSubscriptionDeleteView, BrandSubscriptionFavoriteView, FavoriteOfferBrandsView, FavoriteOfferDiscountBandsView, FavoriteOfferDiscountsView, FavoriteOfferListView, FavoriteOfferToggleView, FavoriteOffersView, MyOffersView
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view()),
@@ -15,4 +15,8 @@ urlpatterns = [
     path('offers/mine/', MyOffersView.as_view(), name='my-offers'),
     path('offers/favorites/', FavoriteOffersView.as_view(), name='favorite-offers'),
     path('offers/favorites/discounts/', FavoriteOfferDiscountsView.as_view(), name='favorite-offer-discounts'),
+    path('favorite-offers/', FavoriteOfferListView.as_view(), name='favorite-offer-list'),
+    path('favorite-offers/brands/', FavoriteOfferBrandsView.as_view(), name='favorite-offer-brand-facets'),
+    path('favorite-offers/discounts/', FavoriteOfferDiscountBandsView.as_view(), name='favorite-offer-discount-facets'),
+    path('favorite-offers/<int:offer_id>/', FavoriteOfferToggleView.as_view(), name='favorite-offer-toggle'),
 ]

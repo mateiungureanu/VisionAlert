@@ -32,6 +32,11 @@ function favoriteOfferParams({ page, brandIds = [], search = '', discounts = [] 
 }
 export const getFavoriteOffers = (token, filters = {}) => request(`/offers/favorites/?${favoriteOfferParams({ page: 1, ...filters })}`, { token });
 export const getFavoriteOfferDiscounts = (token, filters = {}) => request(`/offers/favorites/discounts/?${favoriteOfferParams({ ...filters, page: 0 })}`, { token });
+export const addFavoriteOffer = (offerId, token) => request(`/favorite-offers/${offerId}/`, { method: 'PUT', token });
+export const removeFavoriteOffer = (offerId, token) => request(`/favorite-offers/${offerId}/`, { method: 'DELETE', token });
+export const getFavoriteOfferList = (token, filters = {}) => request(`/favorite-offers/?${favoriteOfferParams({ page: 1, ...filters })}`, { token });
+export const getFavoriteOfferBrands = (token, filters = {}) => request(`/favorite-offers/brands/?${favoriteOfferParams({ ...filters, page: 0 })}`, { token });
+export const getFavoriteOfferDiscountBands = (token, filters = {}) => request(`/favorite-offers/discounts/?${favoriteOfferParams({ ...filters, page: 0 })}`, { token });
 export const saveBrandSubscription = (body, token) => request('/subscriptions/', { method: 'POST', body, token });
 export const deleteBrandSubscription = (brandId, token) => request(`/subscriptions/${brandId}/`, { method: 'DELETE', token });
 
