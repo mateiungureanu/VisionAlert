@@ -55,6 +55,30 @@ When the source explicitly provides them, offer cards also show the discount
 percentage, previous price, and current price. Prices are stored as RON amounts;
 offers without extractable price details keep those fields empty.
 
+### Favorite offers
+
+Users can save individual offers with the heart on an offer card (or in its
+details dialog). Saved offers are listed on the "Oferte favorite" page
+(`/favorite-offers`), newest saved first, with a brand dropdown, a discount-band
+dropdown and a title search; the list is paginated (12 per page). Saved offers
+stay listed after they expire (flagged "Expirată") and even if the user is not
+subscribed to the brand, until the user removes them. This is separate from
+favorite *brands* (the star on `/brands`).
+
+They are stored in the `FavoriteOffer` association table (`user`, `offer`,
+`created_at`, unique per user and offer), so a user can favorite many offers and
+an offer can be favorited by many users.
+
+- `PUT /api/favorite-offers/<offer_id>/` saves an offer, `DELETE` removes it
+  (both idempotent).
+- `GET /api/favorite-offers/` returns the user's saved offers (paginated;
+  `brands`, `search`, `discounts` as for `/api/offers/favorites/`).
+- `GET /api/favorite-offers/brands/` and `GET /api/favorite-offers/discounts/`
+  return the brands and discount bands present among the saved offers, with
+  counts, to build the filter dropdowns.
+- Offers returned by the offer endpoints include `is_favorite`, so cards show
+  the right heart state.
+
 ### Favorites API
 
 - `PATCH /api/subscriptions/<brand_id>/favorite/` with `{"is_favorite": true}`

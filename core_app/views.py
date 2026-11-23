@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q, Subquery
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, status
@@ -10,7 +10,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import BrandSubscriptionFavoriteSerializer, LoginSerializer, RegisterSerializer, UserSerializer, BrandSerializer, CategoryOptionSerializer, BrandSubscriptionSerializer, BrandSubscriptionWriteSerializer, OfferSerializer
-from .models import Brand, BrandSubscription, Offer
+from .models import Brand, BrandSubscription, FavoriteOffer, Offer
 
 
 class RegisterView(generics.CreateAPIView):
@@ -159,7 +159,18 @@ def matched_offers(user, favorites_only=False):
     )
 
 
-class MyOffersView(generics.ListAPIView):
+class FavoriteStateMixin:
+    """Gives OfferSerializer the ids the current user has saved, for `is_favorite`."""
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['favorite_offer_ids'] = set(
+            FavoriteOffer.objects.filter(user=self.request.user).values_list('offer_id', flat=True)
+        )
+        return context
+
+
+class MyOffersView(FavoriteStateMixin, generics.ListAPIView):
     serializer_class = OfferSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -202,16 +213,17 @@ def discount_band_filter(key):
     return band_filter
 
 
-def favorite_offers(request, apply_discounts=True):
-    """Favorite-brand offers narrowed by ?brands=, ?search= and ?discounts=."""
-    queryset = matched_offers(request.user, favorites_only=True)
-    params = request.query_params
+def filter_offers(queryset, params, apply_brands=True, apply_discounts=True):
+    """Narrow an offer queryset by ?brands=, ?search= and ?discounts=.
 
+    The apply_* flags let facet endpoints leave out the filter they describe,
+    so every option stays selectable while others are already chosen.
+    """
     raw_brands = params.get('brands', '')
-    brand_ids = [int(value) for value in raw_brands.split(',') if value.strip().isdigit()]
-    if raw_brands and not brand_ids:
-        return queryset.none()
-    if brand_ids:
+    if apply_brands and raw_brands:
+        brand_ids = [int(value) for value in raw_brands.split(',') if value.strip().isdigit()]
+        if not brand_ids:
+            return queryset.none()
         queryset = queryset.filter(brand_id__in=brand_ids)
 
     search = params.get('search', '').strip()
@@ -236,7 +248,28 @@ def favorite_offers(request, apply_discounts=True):
     return queryset
 
 
-class FavoriteOffersView(generics.ListAPIView):
+def favorite_offers(request, apply_discounts=True):
+    """Favorite-brand offers narrowed by ?brands=, ?search= and ?discounts=."""
+    return filter_offers(
+        matched_offers(request.user, favorites_only=True),
+        request.query_params,
+        apply_discounts=apply_discounts,
+    )
+
+
+def discount_band_counts(queryset):
+    """[{'key': '10', 'count': 2}, ...] for the bands present in the queryset."""
+    counts = {}
+    for _, discount in queryset.values_list('id', 'discount_percentage'):
+        key = discount_band(discount)
+        counts[key] = counts.get(key, 0) + 1
+    bands = sorted((key for key in counts if key != NO_DISCOUNT), key=int)
+    if NO_DISCOUNT in counts:
+        bands.append(NO_DISCOUNT)
+    return [{'key': key, 'count': counts[key]} for key in bands]
+
+
+class FavoriteOffersView(FavoriteStateMixin, generics.ListAPIView):
     """Paginated offers from the user's favorite brands.
 
     Optional filters: ?brands=1,3 narrows the result to those brand ids,
@@ -260,15 +293,82 @@ class FavoriteOfferDiscountsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        counts = {}
-        for _, discount in favorite_offers(request, apply_discounts=False).values_list(
-            'id', 'discount_percentage'
-        ):
-            key = discount_band(discount)
-            counts[key] = counts.get(key, 0) + 1
-        bands = sorted(
-            (key for key in counts if key != NO_DISCOUNT), key=int
+        return Response(
+            discount_band_counts(favorite_offers(request, apply_discounts=False))
         )
-        if NO_DISCOUNT in counts:
-            bands.append(NO_DISCOUNT)
-        return Response([{'key': key, 'count': counts[key]} for key in bands])
+
+
+def user_favorite_offers(request, apply_brands=True, apply_discounts=True):
+    """Offers the user saved to their favorites, most recently saved first.
+
+    Unlike the home feed this ignores subscriptions and expiry: a saved offer
+    stays reachable (the UI flags it as expired) until the user removes it.
+    """
+    favorite = FavoriteOffer.objects.filter(user=request.user, offer=OuterRef('pk'))
+    queryset = (
+        Offer.objects.filter(Exists(favorite))
+        .annotate(saved_at=Subquery(favorite.values('created_at')[:1]))
+        .select_related('brand')
+        .prefetch_related('categories', 'sources')
+        .order_by('-saved_at', '-id')
+    )
+    return filter_offers(
+        queryset,
+        request.query_params,
+        apply_brands=apply_brands,
+        apply_discounts=apply_discounts,
+    )
+
+
+class FavoriteOfferListView(FavoriteStateMixin, generics.ListAPIView):
+    """Paginated list of the user's favorite offers (?brands=, ?search=, ?discounts=)."""
+    serializer_class = OfferSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = FavoriteOffersPagination
+
+    def get_queryset(self):
+        return user_favorite_offers(self.request)
+
+
+class FavoriteOfferBrandsView(APIView):
+    """Brands present among the favorite offers, with offer counts.
+
+    Honors ?search= and ?discounts= but not ?brands=.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        counts = {}
+        names = {}
+        queryset = user_favorite_offers(request, apply_brands=False)
+        for brand_id, brand_name in queryset.values_list('brand_id', 'brand__name'):
+            counts[brand_id] = counts.get(brand_id, 0) + 1
+            names[brand_id] = brand_name
+        brands = sorted(counts, key=lambda brand_id: names[brand_id].lower())
+        return Response(
+            [{'id': brand_id, 'name': names[brand_id], 'count': counts[brand_id]} for brand_id in brands]
+        )
+
+
+class FavoriteOfferDiscountBandsView(APIView):
+    """Discount bands present among the favorite offers (honors ?brands= and ?search=)."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        return Response(
+            discount_band_counts(user_favorite_offers(request, apply_discounts=False))
+        )
+
+
+class FavoriteOfferToggleView(APIView):
+    """PUT adds the offer to the user's favorites, DELETE removes it (both idempotent)."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def put(self, request, offer_id):
+        offer = get_object_or_404(Offer, pk=offer_id)
+        FavoriteOffer.objects.get_or_create(user=request.user, offer=offer)
+        return Response({'offer_id': offer.id, 'is_favorite': True})
+
+    def delete(self, request, offer_id):
+        FavoriteOffer.objects.filter(user=request.user, offer_id=offer_id).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

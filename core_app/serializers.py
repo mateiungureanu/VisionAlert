@@ -139,6 +139,7 @@ class OfferSerializer(serializers.ModelSerializer):
     brand_id = serializers.IntegerField(read_only=True)
     categories = CategoryOptionSerializer(many=True, read_only=True)
     source_urls = serializers.SerializerMethodField()
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -158,7 +159,12 @@ class OfferSerializer(serializers.ModelSerializer):
             'created_at',
             'categories',
             'source_urls',
+            'is_favorite',
         ]
+
+    def get_is_favorite(self, offer):
+        # Views that know the current user pass the ids they saved in the context.
+        return offer.id in self.context.get('favorite_offer_ids', ())
 
     def get_source_urls(self, offer):
         return [

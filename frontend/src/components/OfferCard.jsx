@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useAuth } from '../AuthContext';
+import { addFavoriteOffer, removeFavoriteOffer } from '../api';
 
 function formatDate(value) {
   return new Intl.DateTimeFormat('ro-RO', { dateStyle: 'medium' }).format(new Date(value));
@@ -86,6 +88,31 @@ function ShareOffer({ offer }) {
   );
 }
 
+function isExpired(offer) {
+  return Boolean(offer.valid_until) && new Date(offer.valid_until) < new Date();
+}
+
+function FavoriteButton({ offer, isFavorite, busy, onToggle }) {
+  const label = isFavorite
+    ? `Elimină oferta ${offer.title} din favorite`
+    : `Salvează oferta ${offer.title} la favorite`;
+  return (
+    <button
+      type="button"
+      className={`favorite-heart${isFavorite ? ' active' : ''}`}
+      aria-pressed={isFavorite}
+      aria-label={label}
+      title={isFavorite ? 'Elimină din favorite' : 'Salvează la favorite'}
+      disabled={busy}
+      onClick={onToggle}
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z" />
+      </svg>
+    </button>
+  );
+}
+
 function OfferPricing({ offer }) {
   const hasPricing =
     offer.price != null ||
@@ -116,14 +143,16 @@ function OfferPricing({ offer }) {
   );
 }
 
-function OfferDetails({ offer, headingId }) {
+function OfferDetails({ offer, headingId, actions }) {
   return (
     <>
       <div className="offer-card-top">
         <span className="offer-brand">{offer.brand}</span>
+        {isExpired(offer) && <span className="offer-expired">Expirată</span>}
         {offer.categories.map((category) => (
           <span className="offer-category-tag" key={category.id}>{category.name}</span>
         ))}
+        {actions}
       </div>
       <h2 id={headingId}>{offer.title}</h2>
       <OfferPricing offer={offer} />
@@ -151,7 +180,7 @@ function OfferDetails({ offer, headingId }) {
   );
 }
 
-function OfferDialog({ offer, onClose }) {
+function OfferDialog({ offer, onClose, actions }) {
   const dialogRef = useRef(null);
   const headingId = `offer-dialog-title-${offer.id}`;
 
@@ -180,7 +209,7 @@ function OfferDialog({ offer, onClose }) {
         >
           ×
         </button>
-        <OfferDetails offer={offer} headingId={headingId} />
+        <OfferDetails offer={offer} headingId={headingId} actions={actions} />
         <div className="offer-card-footer">
           <span>Adăugată {formatDate(offer.created_at)}</span>
           <span className="offer-footer-actions">
@@ -198,8 +227,43 @@ function OfferDialog({ offer, onClose }) {
   );
 }
 
-export default function OfferCard({ offer }) {
+export default function OfferCard({ offer, onFavoriteChange }) {
+  const { token } = useAuth();
   const [open, setOpen] = useState(false);
+  const [favoriteOverride, setFavoriteOverride] = useState(null);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
+  const [favoriteError, setFavoriteError] = useState('');
+  const isFavorite = favoriteOverride ?? offer.is_favorite ?? false;
+
+  async function toggleFavorite(event) {
+    event.stopPropagation();
+    if (favoriteBusy) return;
+    const next = !isFavorite;
+    setFavoriteError('');
+    setFavoriteOverride(next);
+    setFavoriteBusy(true);
+    try {
+      await (next ? addFavoriteOffer : removeFavoriteOffer)(offer.id, token);
+      onFavoriteChange?.(offer, next);
+    } catch {
+      setFavoriteOverride(!next);
+      setFavoriteError('Nu am putut actualiza favoritele. Încearcă din nou.');
+    } finally {
+      setFavoriteBusy(false);
+    }
+  }
+
+  const favoriteControls = (
+    <>
+      <FavoriteButton
+        offer={offer}
+        isFavorite={isFavorite}
+        busy={favoriteBusy}
+        onToggle={toggleFavorite}
+      />
+      {favoriteError && <span className="offer-favorite-error" role="alert">{favoriteError}</span>}
+    </>
+  );
 
   function handleKeyDown(event) {
     if (event.target !== event.currentTarget) return;
@@ -220,6 +284,8 @@ export default function OfferCard({ offer }) {
       >
         <div className="offer-card-top">
           <span className="offer-brand">{offer.brand}</span>
+          {isExpired(offer) && <span className="offer-expired">Expirată</span>}
+          {favoriteControls}
         </div>
         <h2>{offer.title}</h2>
         <OfferPricing offer={offer} />
@@ -259,7 +325,7 @@ export default function OfferCard({ offer }) {
           </span>
         </div>
       </article>
-      {open && <OfferDialog offer={offer} onClose={() => setOpen(false)} />}
+      {open && <OfferDialog offer={offer} onClose={() => setOpen(false)} actions={favoriteControls} />}
     </>
   );
 }

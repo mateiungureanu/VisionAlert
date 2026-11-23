@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import FollowedBrands from './pages/FollowedBrands';
 import BrandOffers from './pages/BrandOffers';
+import FavoriteOffers from './pages/FavoriteOffers';
 import Profile from './pages/Profile';
 import BrandSubscriptions from './pages/BrandSubscriptions';
 
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/brands" element={<FollowedBrands />} />
         <Route path="/offers" element={<Navigate to="/brands" replace />} />
         <Route path="/offers/:brandId" element={<BrandOffers />} />
+        <Route path="/favorite-offers" element={<FavoriteOffers />} />
         <Route path="/subscriptions" element={<BrandSubscriptions />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
