@@ -55,7 +55,6 @@ def send_offer_summaries(
             brand__fl_disabled=False,
         )
         .select_related("user", "brand")
-        .prefetch_related("categories")
         .order_by("user_id", "brand_id")
     )
     subscriptions_by_user: dict[int, list[BrandSubscription]] = defaultdict(list)
@@ -131,29 +130,11 @@ def _build_user_summary(
         if subscription is None:
             continue
 
-        selected_categories = {
-            category.pk
-            for category in subscription.categories.all()
-            if not category.fl_disabled
-        }
-        category_names = dict(change.categories)
-        if selected_categories:
-            matching_category_ids = selected_categories.intersection(category_names)
-            if category_names and not matching_category_ids:
-                continue
-            if category_names:
-                report_categories = [
-                    (category_id, category_names[category_id])
-                    for category_id in sorted(matching_category_ids)
-                ]
-            else:
-                report_categories = [(None, "Fără categorie")]
-        else:
-            report_categories = (
-                list(change.categories)
-                if change.categories
-                else [(None, "Fără categorie")]
-            )
+        report_categories = (
+            list(change.categories)
+            if change.categories
+            else [(None, "Fără categorie")]
+        )
 
         brand_summary = summaries.setdefault(
             change.brand_id, _BrandSummary(name=change.brand_name)

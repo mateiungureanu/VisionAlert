@@ -1,4 +1,8 @@
+from cryptography.fernet import Fernet, InvalidToken
+
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import (
     MaxValueValidator,
     MinValueValidator,
@@ -99,6 +103,103 @@ class SocialMediaPlatform(models.Model):
 
     def __str__(self):
         return f"{self.brand.name} - {self.name}"
+
+
+class MonitoredResource(models.Model):
+    class ResourceType(models.TextChoices):
+        WEBSITE = "website", "Website"
+        API = "api", "API"
+
+    class CredentialLocation(models.TextChoices):
+        HEADER = "header", "HTTP header"
+        QUERY = "query", "Query parameter"
+
+    class HealthStatus(models.TextChoices):
+        UNKNOWN = "unknown", "Unknown"
+        HEALTHY = "healthy", "Healthy"
+        FAILING = "failing", "Failing"
+
+    name = models.CharField(max_length=150)
+    brand = models.ForeignKey(
+        Brand,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="monitored_resources",
+    )
+    resource_type = models.CharField(
+        max_length=10,
+        choices=ResourceType.choices,
+        default=ResourceType.WEBSITE,
+    )
+    url = models.URLField(validators=[URLValidator(schemes=["http", "https"])])
+    enabled = models.BooleanField(default=True)
+    scraping_parameters = models.JSONField(default=dict, blank=True)
+    credential_location = models.CharField(
+        max_length=10,
+        choices=CredentialLocation.choices,
+        default=CredentialLocation.HEADER,
+    )
+    credential_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="Authorization",
+    )
+    credential_prefix = models.CharField(max_length=100, blank=True, default="Bearer ")
+    api_key_encrypted = models.TextField(blank=True, editable=False)
+    health_status = models.CharField(
+        max_length=10,
+        choices=HealthStatus.choices,
+        default=HealthStatus.UNKNOWN,
+    )
+    last_checked_at = models.DateTimeField(blank=True, null=True)
+    last_error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def set_api_key(self, api_key: str) -> None:
+        if not api_key:
+            self.api_key_encrypted = ""
+            return
+        key = getattr(settings, "RESOURCE_CREDENTIAL_ENCRYPTION_KEY", "")
+        if not key:
+            raise ImproperlyConfigured(
+                "RESOURCE_CREDENTIAL_ENCRYPTION_KEY must be configured "
+                "before saving API keys."
+            )
+        try:
+            self.api_key_encrypted = Fernet(key.encode("ascii")).encrypt(
+                api_key.encode("utf-8")
+            ).decode("ascii")
+        except (ValueError, UnicodeEncodeError) as exc:
+            raise ImproperlyConfigured(
+                "RESOURCE_CREDENTIAL_ENCRYPTION_KEY must be a valid Fernet key."
+            ) from exc
+
+    def get_api_key(self) -> str:
+        if not self.api_key_encrypted:
+            return ""
+        key = getattr(settings, "RESOURCE_CREDENTIAL_ENCRYPTION_KEY", "")
+        if not key:
+            raise ImproperlyConfigured(
+                "RESOURCE_CREDENTIAL_ENCRYPTION_KEY must be configured "
+                "before using API keys."
+            )
+        try:
+            return Fernet(key.encode("ascii")).decrypt(
+                self.api_key_encrypted.encode("ascii")
+            ).decode("utf-8")
+        except (InvalidToken, ValueError, UnicodeEncodeError) as exc:
+            raise ImproperlyConfigured(
+                "Could not decrypt a monitored resource API key; verify "
+                "RESOURCE_CREDENTIAL_ENCRYPTION_KEY."
+            ) from exc
 
 
 class Offer(models.Model):
