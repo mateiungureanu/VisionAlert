@@ -5,11 +5,11 @@ from cryptography.fernet import Fernet
 from django.contrib import admin
 from django.core import mail
 from django.core.exceptions import ImproperlyConfigured
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 
 from core_app.admin import MonitoredResourceAdminForm
 from core_app.management.commands.check_resources import Command
-from core_app.models import MonitoredResource, User
+from core_app.models import Brand, MonitoredResource, User
 from core_app.scraping.health import check_resources
 
 
@@ -157,6 +157,25 @@ class ResourceHealthTests(TestCase):
         self.assertTrue(second_form.is_valid(), second_form.errors)
         unchanged_key_resource = second_form.save()
         self.assertEqual(unchanged_key_resource.get_api_key(), "new-private-token")
+
+    def test_adding_a_brand_in_admin_creates_a_monitored_website(self):
+        brand = Brand(
+            name="New Brand",
+            official_website="https://new-brand.example.test/",
+        )
+        brand_admin = admin.site._registry[Brand]
+
+        brand_admin.save_model(
+            RequestFactory().post("/admin/core_app/brand/add/"),
+            brand,
+            form=None,
+            change=False,
+        )
+
+        resource = MonitoredResource.objects.get(brand=brand)
+        self.assertEqual(resource.name, "New Brand")
+        self.assertEqual(resource.url, "https://new-brand.example.test/")
+        self.assertTrue(resource.enabled)
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     @patch("core_app.scraping.health.requests.get")

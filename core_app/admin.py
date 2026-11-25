@@ -118,7 +118,21 @@ class MonitoredResourceAdmin(admin.ModelAdmin):
 
 
 admin.site.register(User, UserAdmin)
-admin.site.register(Brand)
 admin.site.register(Category)
 admin.site.register(SocialMediaPlatform)
 admin.site.register(BrandSubscription)
+
+
+@admin.register(Brand)
+class BrandAdmin(admin.ModelAdmin):
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        MonitoredResource.objects.get_or_create(
+            brand=obj,
+            resource_type=MonitoredResource.ResourceType.WEBSITE,
+            defaults={
+                "name": obj.name,
+                "url": obj.official_website,
+                "enabled": not obj.fl_disabled,
+            },
+        )
