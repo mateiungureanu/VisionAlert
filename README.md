@@ -175,6 +175,30 @@ API resources are currently monitored for availability; fetching offers from
 an API such as Steam requires a resource-specific offer scraper and is not
 included in this implementation.
 
+### GitHub Actions schedule
+
+`.github/workflows/resource-health.yml` runs `manage.py check_resources` hourly
+at minute 0 UTC and also supports manual runs from the Actions tab. Scheduled
+workflows run from the default branch and GitHub may delay scheduled starts.
+Before merging/enabling it, add these repository Actions secrets under
+**Settings > Secrets and variables > Actions**:
+
+- `DATABASE_URL`: the database URL, reachable from GitHub-hosted runners.
+- `SECRET_KEY`: the Django secret key.
+- `RESOURCE_CREDENTIAL_ENCRYPTION_KEY`: the same stable Fernet key used by the
+  Django app.
+- `EMAIL_HOST`, `EMAIL_PORT`, and `DEFAULT_FROM_EMAIL`: SMTP settings.
+- `EMAIL_HOST_USER` and `EMAIL_HOST_PASSWORD` if the SMTP server requires
+  authentication.
+- `EMAIL_USE_TLS` and `EMAIL_USE_SSL` only if you need to override the
+  workflow defaults (`true` and `false` respectively).
+
+The workflow checks that database migrations are already applied; it does not
+run migrations. It only monitors resources and does not run `scrape_offers`.
+Scheduling offer scraping separately requires a runner that can reach the
+configured database and the scrapers' dependencies; the current Cinema City
+and KFC scrapers also require the configured LM Studio service.
+
 ## Local offer extraction with LM Studio
 
 Cinema City detail-page extraction uses the local OpenAI-compatible LM Studio
