@@ -170,3 +170,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', '').lower() == 'true'
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', '').lower() == 'true'
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@visionalert.local')
+RESOURCE_CREDENTIAL_ENCRYPTION_KEY = os.getenv(
+    'RESOURCE_CREDENTIAL_ENCRYPTION_KEY',
+    '',
+)

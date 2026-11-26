@@ -99,7 +99,9 @@ subscribed to a brand with a newly detected or improved offer. A lower current
 price or a higher discount percentage counts as an improvement. The summary
 groups counts by brand and category (including uncategorized offers); a new
 offer is included even when it has no comparable price data. No email is sent
-when a run finds no new or improved offers for that user.
+when a run finds no new or improved offers for that user. For now, a brand
+subscription receives alerts regardless of its selected categories; personal
+offer filters are not applied.
 
 Email delivery uses Django's console backend by default, so messages appear in
 the terminal during development. The `scrape_offers` command explicitly uses
@@ -125,6 +127,77 @@ DEFAULT_FROM_EMAIL=VisionAlert <alerts@example.com>
 
 Keep actual SMTP credentials out of source control. Failed sends are logged;
 automatic retry is not configured.
+
+### Monitored resources
+
+Staff can add and manage website and API resources in Django admin under
+"Monitored resources". Each resource has a URL, optional brand association,
+enable/disable switch, JSON parameters, optional API-key authentication, and
+health status. Health checks currently consume the optional
+`health_check_params` object; resource-specific offer scrapers can consume
+other parameters when added. API keys are encrypted before being stored in the
+database. Generate a Fernet key with:
+
+```powershell
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Put the generated value in `.env` and in the secret configuration for every
+web and scheduler process:
+
+```text
+RESOURCE_CREDENTIAL_ENCRYPTION_KEY=<generated-fernet-key>
+```
+
+Keep this key outside source control and back it up securely. It must remain
+stable: changing or losing it without re-encrypting stored credentials makes
+those credentials unreadable. In admin, leave the API-key input blank to keep
+the current key, or select "Remove stored API key" to delete it. For API
+authentication, use an HTTP header when supported (for example, name
+`X-API-Key` with an empty prefix, or `Authorization` with the default `Bearer `
+prefix). Choose query-parameter authentication only when the API requires it;
+query credentials may be exposed by URL logging. Health-check parameters may
+include a `health_check_params` JSON object.
+
+Run resource checks with:
+
+```powershell
+python manage.py check_resources
+```
+
+The command makes a bounded HTTP GET for each enabled resource and stores its
+last check time, health status, and error in admin. It emails active Django
+staff users when a resource first fails and again when it recovers; repeated
+failures do not generate duplicate alerts. The project does not configure a
+scheduler, so configure the deployment's cron/scheduler to run
+`manage.py check_resources` hourly, separately from `manage.py scrape_offers`.
+API resources are currently monitored for availability; fetching offers from
+an API such as Steam requires a resource-specific offer scraper and is not
+included in this implementation.
+
+### GitHub Actions schedule
+
+`.github/workflows/resource-health.yml` runs `manage.py check_resources` hourly
+at minute 0 UTC and also supports manual runs from the Actions tab. Scheduled
+workflows run from the default branch and GitHub may delay scheduled starts.
+Before merging/enabling it, add these repository Actions secrets under
+**Settings > Secrets and variables > Actions**:
+
+- `DATABASE_URL`: the database URL, reachable from GitHub-hosted runners.
+- `SECRET_KEY`: the Django secret key.
+- `RESOURCE_CREDENTIAL_ENCRYPTION_KEY`: the same stable Fernet key used by the
+  Django app.
+- `EMAIL_HOST`, `EMAIL_PORT`, and `DEFAULT_FROM_EMAIL`: SMTP settings.
+- `EMAIL_HOST_USER` and `EMAIL_HOST_PASSWORD` if the SMTP server requires
+  authentication.
+- `EMAIL_USE_TLS` and `EMAIL_USE_SSL` only if you need to override the
+  workflow defaults (`true` and `false` respectively).
+
+The workflow checks that database migrations are already applied; it does not
+run migrations. It only monitors resources and does not run `scrape_offers`.
+Scheduling offer scraping separately requires a runner that can reach the
+configured database and the scrapers' dependencies; the current Cinema City
+and KFC scrapers also require the configured LM Studio service.
 
 ## Local offer extraction with LM Studio
 
