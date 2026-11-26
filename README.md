@@ -178,8 +178,9 @@ included in this implementation.
 ### GitHub Actions schedule
 
 `.github/workflows/resource-health.yml` runs `manage.py check_resources` hourly
-at minute 0 UTC and also supports manual runs from the Actions tab. Scheduled
-workflows run from the default branch and GitHub may delay scheduled starts.
+at minute 17 UTC to avoid the busiest top-of-hour scheduling window, and also
+supports manual runs from the Actions tab. Scheduled workflows run from the
+default branch and GitHub may delay scheduled starts.
 Before merging/enabling it, add these repository Actions secrets under
 **Settings > Secrets and variables > Actions**:
 
